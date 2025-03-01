@@ -907,20 +907,38 @@ export const bindPointToSnapToElementOutline = (
 
   if (bindableElement && aabb) {
     const center = getCenterForBounds(aabb);
+    const adjacentPointIdx =
+      startOrEnd === "start" ? 1 : arrow.points.length - 2;
+    const adjacentPoint = pointRotateRads(
+      pointFrom<GlobalPoint>(
+        arrow.x + arrow.points[adjacentPointIdx][0],
+        arrow.y + arrow.points[adjacentPointIdx][1],
+      ),
+      center,
+      arrow.angle ?? 0,
+    );
 
     const intersection = intersectElementWithLineSegment(
       bindableElement,
       lineSegment(
-        center,
+        adjacentPoint,
         pointFromVector(
           vectorScale(
-            vectorNormalize(vectorFromPoint(edgePoint, center)),
-            Math.max(bindableElement.width, bindableElement.height),
+            vectorNormalize(vectorFromPoint(edgePoint, adjacentPoint)),
+            Math.max(bindableElement.width, bindableElement.height) * 2,
           ),
-          center,
+          adjacentPoint,
         ),
       ),
+    ).sort(
+      (g, h) =>
+        pointDistanceSq(g, adjacentPoint) - pointDistanceSq(h, adjacentPoint),
     )[0];
+
+    if (!intersection) {
+      return edgePoint;
+    }
+
     const currentDistance = pointDistance(edgePoint, center);
     const fullDistance = Math.max(
       pointDistance(intersection ?? edgePoint, center),
@@ -929,18 +947,7 @@ export const bindPointToSnapToElementOutline = (
     const ratio = round(currentDistance / fullDistance);
 
     switch (true) {
-      case ratio > 0.9:
-        const adjacentPointIdx =
-          startOrEnd === "start" ? 1 : arrow.points.length - 2;
-        const adjacentPoint = pointRotateRads(
-          pointFrom(
-            arrow.x + arrow.points[adjacentPointIdx][0],
-            arrow.y + arrow.points[adjacentPointIdx][1],
-          ),
-          center,
-          arrow.angle ?? 0,
-        );
-
+      case ratio > 0.5:
         return pointFromVector(
           vectorScale(
             vectorNormalize(
