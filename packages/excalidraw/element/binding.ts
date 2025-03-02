@@ -78,7 +78,6 @@ import {
 import { intersectElementWithLineSegment } from "./collision";
 import { distanceToBindableElement } from "./distance";
 import { elementCenterPoint } from "./utils";
-import { debugClear, debugDrawPoint } from "../visualdebug";
 
 export type SuggestedBinding =
   | NonDeleted<ExcalidrawBindableElement>
@@ -892,10 +891,10 @@ const getDistanceForBinding = (
 
 export const bindPointToSnapToElementOutline = (
   linearElement: ExcalidrawLinearElement,
-  bindableElement: ExcalidrawBindableElement | undefined,
+  bindableElement: ExcalidrawBindableElement,
   startOrEnd: "start" | "end",
 ): GlobalPoint => {
-  const aabb = bindableElement && aabbForElement(bindableElement);
+  const aabb = aabbForElement(bindableElement);
   const localP =
     linearElement.points[
       startOrEnd === "start" ? 0 : linearElement.points.length - 1
@@ -909,72 +908,65 @@ export const bindPointToSnapToElementOutline = (
     : globalP;
   const elbowed = isElbowArrow(linearElement);
 
-  if (bindableElement && aabb) {
-    const center = getCenterForBounds(aabb);
-    const adjacentPointIdx =
-      startOrEnd === "start" ? 1 : linearElement.points.length - 2;
-    const adjacentPoint = pointRotateRads(
-      pointFrom<GlobalPoint>(
-        linearElement.x + linearElement.points[adjacentPointIdx][0],
-        linearElement.y + linearElement.points[adjacentPointIdx][1],
-      ),
-      center,
-      linearElement.angle ?? 0,
-    );
+  const center = getCenterForBounds(aabb);
+  const adjacentPointIdx =
+    startOrEnd === "start" ? 1 : linearElement.points.length - 2;
+  const adjacentPoint = pointRotateRads(
+    pointFrom<GlobalPoint>(
+      linearElement.x + linearElement.points[adjacentPointIdx][0],
+      linearElement.y + linearElement.points[adjacentPointIdx][1],
+    ),
+    center,
+    linearElement.angle ?? 0,
+  );
 
-    const intersection = intersectElementWithLineSegment(
-      bindableElement,
-      lineSegment(
-        adjacentPoint,
-        pointFromVector(
-          vectorScale(
-            vectorNormalize(vectorFromPoint(edgePoint, adjacentPoint)),
+  const intersection = intersectElementWithLineSegment(
+    bindableElement,
+    lineSegment(
+      adjacentPoint,
+      pointFromVector(
+        vectorScale(
+          vectorNormalize(vectorFromPoint(edgePoint, adjacentPoint)),
+          pointDistance(edgePoint, adjacentPoint) +
             Math.max(bindableElement.width, bindableElement.height) * 2,
-          ),
-          adjacentPoint,
         ),
+        adjacentPoint,
       ),
-    ).sort(
-      (g, h) =>
-        pointDistanceSq(g, adjacentPoint) - pointDistanceSq(h, adjacentPoint),
-    )[0];
+    ),
+  ).sort(
+    (g, h) =>
+      pointDistanceSq(g, adjacentPoint) - pointDistanceSq(h, adjacentPoint),
+  )[0];
 
-    if (!intersection) {
-      return edgePoint;
-    }
-
-    debugClear();
-    intersection &&
-      debugDrawPoint(intersection, { permanent: true, color: "red" });
-
-    const currentDistance = pointDistance(edgePoint, center);
-    const fullDistance = Math.max(
-      pointDistance(intersection ?? edgePoint, center),
-      1e-5,
-    );
-    const ratio = round(currentDistance / fullDistance);
-
-    switch (true) {
-      case ratio > 0.5:
-        return pointFromVector(
-          vectorScale(
-            vectorNormalize(
-              vectorFromPoint(intersection ?? center, adjacentPoint),
-            ),
-            -FIXED_BINDING_DISTANCE,
-          ),
-          intersection ?? edgePoint,
-        );
-      default:
-        if (elbowed) {
-          return headingToMidBindPoint(edgePoint, bindableElement, aabb);
-        }
-
-        return edgePoint;
-    }
+  if (!intersection) {
+    return edgePoint;
   }
 
-  return edgePoint;
+  const currentDistance = pointDistance(edgePoint, center);
+  const fullDistance = Math.max(
+    pointDistance(intersection ?? edgePoint, center),
+    1e-5, // Avoid division by zero
+  );
+  const ratio = round(currentDistance / fullDistance);
+
+  switch (true) {
+    case ratio > 0.5:
+      return pointFromVector(
+        vectorScale(
+          vectorNormalize(
+            vectorFromPoint(intersection ?? center, adjacentPoint),
+          ),
+          -FIXED_BINDING_DISTANCE,
+        ),
+        intersection ?? edgePoint,
+      );
+    default:
+      if (elbowed) {
+        return headingToMidBindPoint(edgePoint, bindableElement, aabb);
+      }
+
+      return edgePoint;
+  }
 };
 
 const headingToMidBindPoint = (

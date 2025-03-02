@@ -8169,7 +8169,6 @@ class App extends React.Component<AppProps, AppState> {
             );
           },
           linearElementEditor,
-          this.scene,
         );
         if (didDrag) {
           pointerDownState.lastCoords.x = pointerCoords.x;
