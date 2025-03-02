@@ -1185,6 +1185,7 @@ const getElbowArrowData = (
     {
       ...arrow,
       elbowed: true,
+      type: "arrow",
       points: nextPoints,
     } as ExcalidrawElbowArrowElement,
     "start",
@@ -1198,6 +1199,7 @@ const getElbowArrowData = (
     {
       ...arrow,
       elbowed: true,
+      type: "arrow",
       points: nextPoints,
     } as ExcalidrawElbowArrowElement,
     "end",
