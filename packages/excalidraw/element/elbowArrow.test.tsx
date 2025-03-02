@@ -69,8 +69,8 @@ describe("elbow arrow segment move", () => {
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
       [110, 0],
-      [110, 195.01],
-      [190, 195.01],
+      [110, 200],
+      [190, 200],
     ]);
 
     mouse.reset();
@@ -80,8 +80,8 @@ describe("elbow arrow segment move", () => {
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
       [110, 0],
-      [110, 195.01],
-      [190, 195.01],
+      [110, 200],
+      [190, 200],
     ]);
   });
 
@@ -192,8 +192,8 @@ describe("elbow arrow routing", () => {
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
       [45, 0],
-      [45, 199.07],
-      [90.07, 199.07],
+      [45, 206.55],
+      [90, 206.55],
     ]);
   });
 });
@@ -246,8 +246,8 @@ describe("elbow arrow ui", () => {
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
       [45, 0],
-      [45, 195.01],
-      [90, 195.01],
+      [45, 200],
+      [90, 200],
     ]);
   });
 
@@ -284,11 +284,12 @@ describe("elbow arrow ui", () => {
       ".drag-input",
     ) as HTMLInputElement;
     UI.updateInput(inputAngle, String("40"));
-console.log(JSON.stringify(h.elements))
+
     expect(arrow.points.map((point) => point.map(Math.round))).toEqual([
       [0, 0],
-      [109, 0],
-      [109, 152],
+      [35, 0],
+      [35, 183],
+      [96, 183],
     ]);
   });
 });

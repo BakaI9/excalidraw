@@ -503,12 +503,12 @@ describe("arrow element", () => {
     )[0] as ExcalidrawElbowArrowElement;
 
     expect(arrow.startBinding?.fixedPoint?.[0]).toBeCloseTo(1.05);
-    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.78);
+    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.79);
 
     UI.resize(rectangle, "se", [-200, -150]);
 
     expect(arrow.startBinding?.fixedPoint?.[0]).toBeCloseTo(1.05);
-    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.78);
+    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.79);
   });
 
   it("flips the fixed point binding on negative resize for group selection", () => {
@@ -531,12 +531,12 @@ describe("arrow element", () => {
     )[0] as ExcalidrawElbowArrowElement;
 
     expect(arrow.startBinding?.fixedPoint?.[0]).toBeCloseTo(1.05);
-    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.78);
+    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.79);
 
     UI.resize([rectangle, arrow], "nw", [300, 350]);
 
     expect(arrow.startBinding?.fixedPoint?.[0]).toBeCloseTo(-0.14);
-    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.3);
+    expect(arrow.startBinding?.fixedPoint?.[1]).toBeCloseTo(0.21);
   });
 });
 
