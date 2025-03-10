@@ -1,5 +1,5 @@
 import { isTextElement } from "../element";
-import { newElementWith } from "../element/mutateElement";
+import { newElementWith } from "../element/newElement";
 import { measureText } from "../element/textMeasurements";
 import { getSelectedElements } from "../scene";
 import { CaptureUpdateAction } from "../store";

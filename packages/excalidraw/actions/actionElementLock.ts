@@ -1,5 +1,5 @@
 import { LockedIcon, UnlockedIcon } from "../components/icons";
-import { newElementWith } from "../element/mutateElement";
+import { newElementWith } from "../element/newElement";
 import { isFrameLikeElement } from "../element/typeChecks";
 import type { ExcalidrawElement } from "../element/types";
 import { KEYS } from "../keys";

@@ -1,7 +1,7 @@
-import { newElementWith } from "./element/mutateElement";
 import { getMaximumGroups } from "./groups";
 import { getCommonBoundingBox } from "./element/bounds";
 import type { ElementsMap, ExcalidrawElement } from "./element/types";
+import { newElementWith } from "./element/newElement";
 
 export interface Distribution {
   space: "between";

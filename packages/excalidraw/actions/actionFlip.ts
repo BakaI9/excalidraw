@@ -21,8 +21,8 @@ import {
   isElbowArrow,
   isLinearElement,
 } from "../element/typeChecks";
-import { mutateElement, newElementWith } from "../element/mutateElement";
-import { deepCopyElement } from "../element/newElement";
+import { mutateElement } from "../element/mutateElement";
+import { deepCopyElement, newElementWith } from "../element/newElement";
 import { getCommonBoundingBox } from "../element/bounds";
 
 export const actionFlipHorizontal = register({

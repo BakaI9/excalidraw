@@ -39,7 +39,6 @@ import {
   vectorToHeading,
   headingForPoint,
 } from "./heading";
-import { type ElementUpdate } from "./mutateElement";
 import { isBindableElement } from "./typeChecks";
 import {
   type ExcalidrawElbowArrowElement,
@@ -49,6 +48,7 @@ import {
 import type {
   Arrowhead,
   ElementsMap,
+  ElementUpdate,
   ExcalidrawBindableElement,
   FixedPoint,
   FixedPointBinding,

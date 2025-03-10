@@ -71,7 +71,7 @@ import {
   isTextElement,
   redrawTextBoundingBox,
 } from "../element";
-import { mutateElement, newElementWith } from "../element/mutateElement";
+import { mutateElement } from "../element/mutateElement";
 import { getBoundTextElement } from "../element/textElement";
 import {
   isArrowElement,
@@ -122,6 +122,7 @@ import { LinearElementEditor } from "../element/linearElementEditor";
 import type { LocalPoint } from "@excalidraw/math";
 import { pointFrom } from "@excalidraw/math";
 import { Range } from "../components/Range";
+import { newElementWith } from "../element/newElement";
 
 const FONT_SIZE_RELATIVE_INCREASE_STEP = 0.1;
 

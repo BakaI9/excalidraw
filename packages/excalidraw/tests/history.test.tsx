@@ -10,7 +10,7 @@ import {
   getCloneByOrigId,
 } from "./test-utils";
 import "../../utils/test-utils";
-import { Excalidraw } from "../index";
+import { Excalidraw, newElementWith } from "../index";
 import { Keyboard, Pointer, UI } from "./helpers/ui";
 import { API } from "./helpers/api";
 import { getDefaultAppState } from "../appState";
@@ -26,7 +26,6 @@ import {
   DEFAULT_ELEMENT_STROKE_COLOR_INDEX,
 } from "../colors";
 import { KEYS } from "../keys";
-import { newElementWith } from "../element/mutateElement";
 import type {
   ExcalidrawElbowArrowElement,
   ExcalidrawFrameElement,

@@ -410,3 +410,11 @@ export type NonDeletedSceneElementsMap = Map<
 export type ElementsMapOrArray =
   | readonly ExcalidrawElement[]
   | Readonly<ElementsMap>;
+
+/**
+ * Represents the requested changes to an element. Used by `mutateElement`.
+ */
+export type ElementUpdate<TElement extends ExcalidrawElement> = Omit<
+  Partial<TElement>,
+  "id" | "version" | "versionNonce" | "updated"
+>;

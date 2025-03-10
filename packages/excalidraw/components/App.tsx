@@ -132,7 +132,7 @@ import {
   getSuggestedBindingsForArrows,
 } from "../element/binding";
 import { LinearElementEditor } from "../element/linearElementEditor";
-import { mutateElement, newElementWith } from "../element/mutateElement";
+import { mutateElement } from "../element/mutateElement";
 import {
   deepCopyElement,
   duplicateElements,
@@ -142,6 +142,7 @@ import {
   newMagicFrameElement,
   newIframeElement,
   newArrowElement,
+  newElementWith,
 } from "../element/newElement";
 import {
   hasBoundTextElement,

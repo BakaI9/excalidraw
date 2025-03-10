@@ -16,10 +16,9 @@ import type {
 import type { UserIdleState } from "@excalidraw/excalidraw/constants";
 import { trackEvent } from "@excalidraw/excalidraw/analytics";
 import throttle from "lodash.throttle";
-import { newElementWith } from "@excalidraw/excalidraw/element/mutateElement";
 import { encryptData } from "@excalidraw/excalidraw/data/encryption";
 import type { Socket } from "socket.io-client";
-import { CaptureUpdateAction } from "@excalidraw/excalidraw";
+import { CaptureUpdateAction, newElementWith } from "@excalidraw/excalidraw";
 
 class Portal {
   collab: TCollabClass;

@@ -14,8 +14,12 @@ import {
 import { getCornerRadius } from "../shapes";
 import type {
   ExcalidrawDiamondElement,
+  ExcalidrawElement,
   ExcalidrawRectanguloidElement,
 } from "./types";
+import { randomInteger } from "../random";
+import { getUpdatedTimestamp } from "../utils";
+import type { Mutable } from "../utility-types";
 
 /**
  * Get the building components of a rectanguloid element in the form of
@@ -353,3 +357,18 @@ export function deconstructDiamondElement(
 
   return [sides, corners];
 }
+
+/**
+ * Mutates element, bumping `version`, `versionNonce`, and `updated`.
+ *
+ * NOTE: does not trigger re-render.
+ */
+export const bumpVersion = <T extends Mutable<ExcalidrawElement>>(
+  element: T,
+  version?: ExcalidrawElement["version"],
+) => {
+  element.version = (version ?? element.version) + 1;
+  element.versionNonce = randomInteger();
+  element.updated = getUpdatedTimestamp();
+  return element;
+};

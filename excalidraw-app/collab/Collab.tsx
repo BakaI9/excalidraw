@@ -22,6 +22,7 @@ import {
   restoreElements,
   zoomToFitBounds,
   reconcileElements,
+  newElementWith,
 } from "@excalidraw/excalidraw";
 import {
   assertNever,
@@ -76,7 +77,6 @@ import {
   isImageElement,
   isInitializedImageElement,
 } from "@excalidraw/excalidraw/element/typeChecks";
-import { newElementWith } from "@excalidraw/excalidraw/element/mutateElement";
 import { decryptData } from "@excalidraw/excalidraw/data/encryption";
 import { resetBrowserStateVersions } from "../data/tabSync";
 import { LocalData } from "../data/LocalData";

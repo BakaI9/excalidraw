@@ -254,11 +254,9 @@ export {
   UserIdleState,
 } from "./constants";
 
-export {
-  mutateElement,
-  newElementWith,
-  bumpVersion,
-} from "./element/mutateElement";
+export { mutateElement } from "./element/mutateElement";
+
+export { bumpVersion } from "./element/utils";
 
 export { CaptureUpdateAction } from "./store";
 
@@ -268,6 +266,8 @@ export {
   sceneCoordsToViewportCoords,
   viewportCoordsToSceneCoords,
 } from "./utils";
+
+export { newElementWith } from "./element/newElement";
 
 export { Sidebar } from "./components/Sidebar/Sidebar";
 export { Button } from "./components/Button";

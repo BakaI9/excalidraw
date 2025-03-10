@@ -19,7 +19,7 @@ import type {
   ExcalidrawTextElement,
 } from "./types";
 import type { AppState } from "../types";
-import { bumpVersion, mutateElement } from "./mutateElement";
+import { mutateElement } from "./mutateElement";
 import {
   getBoundTextElementId,
   getContainerElement,
@@ -50,6 +50,7 @@ import {
 } from "./containerCache";
 import { getTextWidth } from "./textMeasurements";
 import { normalizeText } from "./textMeasurements";
+import { bumpVersion } from "./utils";
 
 const getTransform = (
   width: number,

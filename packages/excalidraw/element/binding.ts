@@ -14,6 +14,7 @@ import type {
   FixedPoint,
   SceneElementsMap,
   FixedPointBinding,
+  ElementUpdate,
 } from "./types";
 
 import type { Bounds } from "./bounds";
@@ -35,7 +36,6 @@ import {
   isRectanguloidElement,
   isTextElement,
 } from "./typeChecks";
-import type { ElementUpdate } from "./mutateElement";
 import { mutateElement } from "./mutateElement";
 import type Scene from "../scene/Scene";
 import { LinearElementEditor } from "./linearElementEditor";
@@ -1431,7 +1431,7 @@ const newBoundElements = (
   return nextBoundElements;
 };
 
-export const bindingBorderTest = (
+const bindingBorderTest = (
   element: NonDeleted<ExcalidrawBindableElement>,
   { x, y }: { x: number; y: number },
   elementsMap: NonDeletedSceneElementsMap,

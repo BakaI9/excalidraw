@@ -11,9 +11,9 @@ import { getDefaultAppState } from "../../appState";
 import type { ImportedDataState } from "../../data/types";
 import type { NormalizedZoomValue } from "../../types";
 import { DEFAULT_SIDEBAR, FONT_FAMILY, ROUNDNESS } from "../../constants";
-import { newElementWith } from "../../element/mutateElement";
 import { vi } from "vitest";
 import { pointFrom } from "@excalidraw/math";
+import { newElementWith } from "@excalidraw/excalidraw";
 
 describe("restoreElements", () => {
   const mockSizeHelper = vi.spyOn(sizeHelpers, "isInvisiblySmallElement");

@@ -6,7 +6,7 @@ import { register } from "./register";
 import { getNonDeletedElements } from "../element";
 import type { ExcalidrawElement } from "../element/types";
 import type { AppClassProperties, AppState } from "../types";
-import { mutateElement, newElementWith } from "../element/mutateElement";
+import { mutateElement } from "../element/mutateElement";
 import { getElementsInGroup, selectGroupsForSelectedElements } from "../groups";
 import { LinearElementEditor } from "../element/linearElementEditor";
 import { fixBindingsAfterDeletion } from "../element/binding";
@@ -20,6 +20,7 @@ import { TrashIcon } from "../components/icons";
 import { CaptureUpdateAction } from "../store";
 import { getContainerElement } from "../element/textElement";
 import { getFrameChildren } from "../frame";
+import { newElementWith } from "../element/newElement";
 
 const deleteSelectedElements = (
   elements: readonly ExcalidrawElement[],

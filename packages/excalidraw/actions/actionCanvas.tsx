@@ -28,7 +28,6 @@ import type { AppState, Offsets } from "../types";
 import { getShortcutKey, updateActiveTool } from "../utils";
 import { register } from "./register";
 import { Tooltip } from "../components/Tooltip";
-import { newElementWith } from "../element/mutateElement";
 import {
   getDefaultAppState,
   isEraserActive,
@@ -39,6 +38,7 @@ import type { SceneBounds } from "../element/bounds";
 import { setCursor } from "../cursor";
 import { CaptureUpdateAction } from "../store";
 import { clamp, roundToStep } from "@excalidraw/math";
+import { newElementWith } from "..";
 
 export const actionChangeViewBackgroundColor = register({
   name: "changeViewBackgroundColor",

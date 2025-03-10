@@ -1,3 +1,4 @@
+import { newElementWith } from ".";
 import { ENV } from "./constants";
 import type { BindableProp, BindingProp } from "./element/binding";
 import {
@@ -7,8 +8,7 @@ import {
   updateBoundElements,
 } from "./element/binding";
 import { LinearElementEditor } from "./element/linearElementEditor";
-import type { ElementUpdate } from "./element/mutateElement";
-import { mutateElement, newElementWith } from "./element/mutateElement";
+import { mutateElement } from "./element/mutateElement";
 import {
   getBoundTextElementId,
   redrawTextBoundingBox,
@@ -21,6 +21,7 @@ import {
   isTextElement,
 } from "./element/typeChecks";
 import type {
+  ElementUpdate,
   ExcalidrawElement,
   ExcalidrawImageElement,
   ExcalidrawLinearElement,

@@ -20,6 +20,7 @@ import type {
   ExcalidrawArrowElement,
   FixedSegment,
   ExcalidrawElbowArrowElement,
+  ElementUpdate,
 } from "./types";
 import {
   arrayToMap,
@@ -28,7 +29,6 @@ import {
   isTestEnv,
 } from "../utils";
 import { randomInteger, randomId } from "../random";
-import { bumpVersion, newElementWith } from "./mutateElement";
 import { getNewGroupIdsForDuplication } from "../groups";
 import type { AppState } from "../types";
 import { getElementAbsoluteCoords } from ".";
@@ -48,6 +48,7 @@ import type { MarkOptional, Merge, Mutable } from "../utility-types";
 import { getLineHeight } from "../fonts";
 import type { Radians } from "@excalidraw/math";
 import { normalizeText, measureText } from "./textMeasurements";
+import { bumpVersion } from "./utils";
 
 export type ElementConstructorOpts = MarkOptional<
   Omit<ExcalidrawGenericElement, "id" | "type" | "isDeleted" | "updated">,
@@ -790,4 +791,38 @@ export const duplicateElements = (
   }
 
   return clonedElements;
+};
+
+export const newElementWith = <TElement extends ExcalidrawElement>(
+  element: TElement,
+  updates: ElementUpdate<TElement>,
+  /** pass `true` to always regenerate */
+  force = false,
+): TElement => {
+  let didChange = false;
+  for (const key in updates) {
+    const value = (updates as any)[key];
+    if (typeof value !== "undefined") {
+      if (
+        (element as any)[key] === value &&
+        // if object, always update because its attrs could have changed
+        (typeof value !== "object" || value === null)
+      ) {
+        continue;
+      }
+      didChange = true;
+    }
+  }
+
+  if (!didChange && !force) {
+    return element;
+  }
+
+  return {
+    ...element,
+    ...updates,
+    updated: getUpdatedTimestamp(),
+    version: element.version + 1,
+    versionNonce: randomInteger(),
+  };
 };

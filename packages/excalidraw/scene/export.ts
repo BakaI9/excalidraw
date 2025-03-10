@@ -35,13 +35,13 @@ import {
 } from "../frame";
 import { newTextElement } from "../element";
 import { type Mutable } from "../utility-types";
-import { newElementWith } from "../element/mutateElement";
 import { isFrameLikeElement } from "../element/typeChecks";
 import type { RenderableElementsMap } from "./types";
 import { syncInvalidIndices } from "../fractionalIndex";
 import { renderStaticScene } from "../renderer/staticScene";
 import { Fonts } from "../fonts";
 import { base64ToString, decode, encode, stringToBase64 } from "../data/encode";
+import { newElementWith } from "../element/newElement";
 
 const truncateText = (element: ExcalidrawTextElement, maxWidth: number) => {
   if (element.width <= maxWidth) {

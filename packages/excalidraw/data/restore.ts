@@ -43,7 +43,6 @@ import {
 } from "../constants";
 import { getDefaultAppState } from "../appState";
 import { LinearElementEditor } from "../element/linearElementEditor";
-import { bumpVersion } from "../element/mutateElement";
 import { getUpdatedTimestamp, updateActiveTool } from "../utils";
 import { arrayToMap } from "../utils";
 import type { MarkOptional, Mutable } from "../utility-types";
@@ -65,6 +64,7 @@ import {
   updateElbowArrowPoints,
   validateElbowPoints,
 } from "../element/elbowArrow";
+import { bumpVersion } from "../element/utils";
 
 type RestoredAppState = Omit<
   AppState,
