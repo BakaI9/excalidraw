@@ -9,7 +9,12 @@ import { randomInteger } from "../random";
 import { getUpdatedTimestamp, toBrandedType } from "../utils";
 import type { Mutable } from "../utility-types";
 import { ShapeCache } from "../scene/ShapeCache";
-import { isElbowArrow } from "./typeChecks";
+import {
+  isArrowElement,
+  isBindableElement,
+  isElbowArrow,
+  isTextElement,
+} from "./typeChecks";
 import { updateElbowArrowPoints } from "./elbowArrow";
 import type { Radians } from "@excalidraw/math";
 
@@ -28,12 +33,9 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
     isDragging?: boolean;
   },
 ): TElement => {
-  let didChange = false;
-
   // casting to any because can't use `in` operator
   // (see https://github.com/microsoft/TypeScript/issues/21732)
-  const { points, fixedSegments, fileId, startBinding, endBinding } =
-    updates as any;
+  const { points, fixedSegments, startBinding, endBinding } = updates as any;
 
   if (
     isElbowArrow(element) &&
@@ -71,6 +73,35 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
   } else if (typeof points !== "undefined") {
     updates = { ...getSizeFromPoints(points), ...updates };
   }
+
+  const scene = Scene.getScene(element);
+
+  const changes = syncBindings(
+    element,
+    updates,
+    scene?.getElementsMapIncludingDeleted(),
+  );
+
+  for (const { element: el, updates: update } of changes) {
+    innerMutateElement(el, update);
+  }
+
+  if (informMutation) {
+    scene?.triggerUpdate();
+  }
+
+  return element;
+};
+
+const innerMutateElement = <TElement extends Mutable<ExcalidrawElement>>(
+  element: TElement,
+  updates: ElementUpdate<TElement>,
+) => {
+  // casting to any because can't use `in` operator
+  // (see https://github.com/microsoft/TypeScript/issues/21732)
+  const { points, fileId } = updates as any;
+
+  let didChange = false;
 
   for (const key in updates) {
     const value = (updates as any)[key];
@@ -122,7 +153,7 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
   }
 
   if (!didChange) {
-    return element;
+    return;
   }
 
   if (
@@ -137,10 +168,124 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
   element.version++;
   element.versionNonce = randomInteger();
   element.updated = getUpdatedTimestamp();
+};
 
-  if (informMutation) {
-    Scene.getScene(element)?.triggerUpdate();
+const syncBindings = <TElement extends Mutable<ExcalidrawElement>>(
+  element: TElement,
+  updates: ElementUpdate<TElement>,
+  elementsMap?: SceneElementsMap,
+): { element: TElement; updates: ElementUpdate<TElement> }[] => {
+  const changes: { element: TElement; updates: ElementUpdate<TElement> }[] = [
+    { element, updates },
+  ];
+
+  if (isBindableElement(element)) {
+    const { boundElements } = updates as any;
+
+    if (!boundElements) {
+      return changes;
+    }
+
+    for (const boundElement of boundElements) {
+      switch (boundElement.type) {
+        case "arrow":
+          console.error(
+            `Cannot bind an arrow element by updating the boundElements ` +
+              `property! Bind it by updating the arrow startBinding or ` +
+              `endBinding.`,
+          );
+          break;
+        case "text":
+          if (isTextElement(element)) {
+            console.error(`Text element cannot bind to another text element`);
+            continue;
+          }
+
+          const textElement = elementsMap?.get(boundElement.id);
+
+          if (!textElement) {
+            console.error(`Text element is not in scene for ${element.id}`);
+            continue;
+          }
+
+          changes.push({
+            element: textElement as TElement,
+            updates: {
+              containerId: element.id,
+            } as any,
+          });
+
+          break;
+        default:
+          console.error(
+            `Unknown bound element type ${boundElement.type} ` +
+              `for element ${element.id}`,
+          );
+      }
+    }
+  } else if (isArrowElement(element)) {
+    let { startBinding, endBinding } = updates as any;
+
+    if (startBinding === undefined) {
+      startBinding = element.startBinding;
+    }
+
+    if (endBinding === undefined) {
+      endBinding = element.endBinding;
+    }
+
+    if (startBinding) {
+      const startElement = elementsMap?.get(startBinding.elementId);
+
+      if (startElement) {
+        if (!startElement.boundElements?.find((el) => el.id === element.id)) {
+          changes.push({
+            element: startElement as TElement,
+            updates: {
+              boundElements: [
+                ...(startElement.boundElements ?? []),
+                {
+                  id: element.id,
+                  type: "arrow",
+                },
+              ],
+            } as any,
+          });
+        }
+      } else {
+        // TODO: Should be an invariant
+        console.error(
+          `Start element with id ${startBinding.elementId} not found while syncing bindings for ${element.id}`,
+        );
+      }
+    }
+
+    if (endBinding) {
+      const endElement = elementsMap?.get(endBinding.elementId);
+
+      if (endElement) {
+        if (!endElement.boundElements?.find((el) => el.id === element.id)) {
+          changes.push({
+            element: endElement as TElement,
+            updates: {
+              boundElements: [
+                ...(endElement.boundElements ?? []),
+                {
+                  id: element.id,
+                  type: "arrow",
+                },
+              ],
+            } as any,
+          });
+        }
+      } else {
+        // TODO: Should be an invariant
+        console.error(
+          `End element with id ${endBinding.elementId} not found while syncing bindings for ${element.id}`,
+        );
+      }
+    }
   }
 
-  return element;
+  return changes;
 };

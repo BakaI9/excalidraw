@@ -279,7 +279,8 @@ export const textWysiwyg = ({
         editable.style.fontFamily = getFontFamilyString(updatedTextElement);
       }
 
-      mutateElement(updatedTextElement, { x: coordX, y: coordY });
+      // TODO: mutateElement is called recursively if informMutation is true
+      mutateElement(updatedTextElement, { x: coordX, y: coordY }, false);
     }
   };
 

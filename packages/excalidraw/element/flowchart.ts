@@ -7,8 +7,7 @@ import {
   headingForPointFromElement,
   type Heading,
 } from "./heading";
-import { bindLinearElement } from "./binding";
-import { LinearElementEditor } from "./linearElementEditor";
+import { createBindingDefinitionForLinearElement } from "./binding";
 import { newArrowElement, newElement } from "./newElement";
 import type { SceneElementsMap } from "./types";
 import {
@@ -436,13 +435,14 @@ const createBindingArrow = (
     elbowed: true,
   });
 
-  bindLinearElement(
+  bindingArrow.startBinding = createBindingDefinitionForLinearElement(
     bindingArrow,
     startBindingElement,
     "start",
     elementsMap as NonDeletedSceneElementsMap,
   );
-  bindLinearElement(
+
+  bindingArrow.endBinding = createBindingDefinitionForLinearElement(
     bindingArrow,
     endBindingElement,
     "end",
@@ -462,13 +462,6 @@ const createBindingArrow = (
     bindingArrow.id,
     bindingArrow as OrderedExcalidrawElement,
   );
-
-  LinearElementEditor.movePoints(bindingArrow, [
-    {
-      index: 1,
-      point: bindingArrow.points[1],
-    },
-  ]);
 
   const update = updateElbowArrowPoints(
     bindingArrow,

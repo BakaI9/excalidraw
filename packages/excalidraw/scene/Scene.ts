@@ -305,6 +305,7 @@ class Scene {
       this.elementsMap.set(element.id, element);
       Scene.mapElementToScene(element, this);
     });
+
     const nonDeletedElements = getNonDeletedElements(this.elements);
     this.nonDeletedElements = nonDeletedElements.elements;
     this.nonDeletedElementsMap = nonDeletedElements.elementsMap;
@@ -394,9 +395,9 @@ class Scene {
       ...this.elements.slice(index),
     ];
 
-    syncMovedIndices(nextElements, arrayToMap(elements));
-
     this.replaceAllElements(nextElements);
+
+    syncMovedIndices(nextElements, arrayToMap(elements));
   }
 
   insertElement = (element: ExcalidrawElement) => {

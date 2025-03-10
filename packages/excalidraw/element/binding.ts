@@ -459,6 +459,46 @@ const normalizePointBinding = (
   };
 };
 
+export const createBindingDefinitionForLinearElement = <
+  T extends ExcalidrawArrowElement | ExcalidrawElbowArrowElement,
+>(
+  linearElement: NonDeleted<T>,
+  hoveredElement: ExcalidrawBindableElement,
+  startOrEnd: "start" | "end",
+  elementsMap: NonDeletedSceneElementsMap,
+) => {
+  return (
+    isElbowArrow(linearElement)
+      ? {
+          elementId: hoveredElement.id,
+          ...{
+            ...calculateFixedPointForElbowArrowBinding(
+              linearElement,
+              hoveredElement,
+              startOrEnd,
+              elementsMap,
+            ),
+            focus: 0,
+            gap: 0,
+          },
+        }
+      : {
+          elementId: hoveredElement.id,
+          ...{
+            ...normalizePointBinding(
+              calculateFocusAndGap(
+                linearElement,
+                hoveredElement,
+                startOrEnd,
+                elementsMap,
+              ),
+              hoveredElement,
+            ),
+          },
+        }
+  ) as T extends ExcalidrawElbowArrowElement ? FixedPointBinding : PointBinding;
+};
+
 export const bindLinearElement = (
   linearElement: NonDeleted<ExcalidrawLinearElement>,
   hoveredElement: ExcalidrawBindableElement,
@@ -469,31 +509,12 @@ export const bindLinearElement = (
     return;
   }
 
-  const binding: PointBinding | FixedPointBinding = {
-    elementId: hoveredElement.id,
-    ...(isElbowArrow(linearElement)
-      ? {
-          ...calculateFixedPointForElbowArrowBinding(
-            linearElement,
-            hoveredElement,
-            startOrEnd,
-            elementsMap,
-          ),
-          focus: 0,
-          gap: 0,
-        }
-      : {
-          ...normalizePointBinding(
-            calculateFocusAndGap(
-              linearElement,
-              hoveredElement,
-              startOrEnd,
-              elementsMap,
-            ),
-            hoveredElement,
-          ),
-        }),
-  };
+  const binding = createBindingDefinitionForLinearElement(
+    linearElement,
+    hoveredElement,
+    startOrEnd,
+    elementsMap,
+  );
 
   mutateElement(linearElement, {
     [startOrEnd === "start" ? "startBinding" : "endBinding"]: binding,

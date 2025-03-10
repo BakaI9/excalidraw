@@ -4614,6 +4614,18 @@ class App extends React.Component<AppProps, AppState> {
       if (this.flowChartCreator.isCreatingChart) {
         if (this.flowChartCreator.pendingNodes?.length) {
           this.scene.insertElements(this.flowChartCreator.pendingNodes);
+          // this.flowChartCreator.pendingNodes.forEach((node) => {
+          //   if (isArrowElement(node)) {
+          //     mutateElement(
+          //       node,
+          //       {
+          //         startBinding: node.startBinding,
+          //         endBinding: node.endBinding,
+          //       },
+          //       false,
+          //     );
+          //   }
+          // });
         }
 
         const firstNode = this.flowChartCreator.pendingNodes?.[0];
