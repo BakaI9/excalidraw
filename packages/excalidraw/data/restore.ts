@@ -52,7 +52,6 @@ import { normalizeLink } from "./url";
 import { syncInvalidIndices } from "../fractionalIndex";
 import { getSizeFromPoints } from "../points";
 import { getLineHeight } from "../fonts";
-import { normalizeFixedPoint } from "../element/binding";
 import {
   getNormalizedGridSize,
   getNormalizedGridStep,
@@ -62,6 +61,7 @@ import type { LocalPoint, Radians } from "@excalidraw/math";
 import { isFiniteNumber, pointFrom } from "@excalidraw/math";
 import { detectLineHeight } from "../element/textMeasurements";
 import {
+  normalizeFixedPoint,
   updateElbowArrowPoints,
   validateElbowPoints,
 } from "../element/elbowArrow";

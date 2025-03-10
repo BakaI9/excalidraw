@@ -11,6 +11,7 @@ import type {
   ElementsMap,
   SceneElementsMap,
   ExcalidrawElbowArrowElement,
+  ExcalidrawBindableElement,
 } from "./types";
 import type { Mutable } from "../utility-types";
 import {
@@ -33,7 +34,7 @@ import {
 } from "./typeChecks";
 import { mutateElement } from "./mutateElement";
 import { getFontString } from "../utils";
-import { getArrowLocalFixedPoints, updateBoundElements } from "./binding";
+import { updateBoundElements } from "./binding";
 import type {
   MaybeTransformHandleType,
   TransformHandleDirection,
@@ -66,6 +67,7 @@ import {
   getApproxMinLineWidth,
   getApproxMinLineHeight,
 } from "./textMeasurements";
+import { getGlobalFixedPointForBindableElement } from "./elbowArrow";
 
 // Returns true when transform (resizing/rotation) happened
 export const transformElements = (
@@ -533,9 +535,24 @@ const rotateMultipleElements = (
       );
 
       if (isElbowArrow(element)) {
-        // Needed to re-route the arrow
+        // Needed to re-route the arrow, we only need the start and end point
+        const [startPoint, endPoint] = getGlobalFixedPoints(
+          element,
+          elementsMap,
+        );
         mutateElement(element, {
-          points: getArrowLocalFixedPoints(element, elementsMap),
+          points: [
+            LinearElementEditor.pointFromAbsoluteCoords(
+              element,
+              startPoint,
+              elementsMap,
+            ),
+            LinearElementEditor.pointFromAbsoluteCoords(
+              element,
+              endPoint,
+              elementsMap,
+            ),
+          ],
         });
       } else {
         mutateElement(
@@ -1542,4 +1559,42 @@ export const resizeMultipleElements = (
 
     scene.triggerUpdate();
   }
+};
+
+const getGlobalFixedPoints = (
+  arrow: ExcalidrawElbowArrowElement,
+  elementsMap: ElementsMap,
+): [GlobalPoint, GlobalPoint] => {
+  const startElement =
+    arrow.startBinding &&
+    (elementsMap.get(arrow.startBinding.elementId) as
+      | ExcalidrawBindableElement
+      | undefined);
+  const endElement =
+    arrow.endBinding &&
+    (elementsMap.get(arrow.endBinding.elementId) as
+      | ExcalidrawBindableElement
+      | undefined);
+  const startPoint =
+    startElement && arrow.startBinding
+      ? getGlobalFixedPointForBindableElement(
+          arrow.startBinding.fixedPoint,
+          startElement as ExcalidrawBindableElement,
+        )
+      : pointFrom<GlobalPoint>(
+          arrow.x + arrow.points[0][0],
+          arrow.y + arrow.points[0][1],
+        );
+  const endPoint =
+    endElement && arrow.endBinding
+      ? getGlobalFixedPointForBindableElement(
+          arrow.endBinding.fixedPoint,
+          endElement as ExcalidrawBindableElement,
+        )
+      : pointFrom<GlobalPoint>(
+          arrow.x + arrow.points[arrow.points.length - 1][0],
+          arrow.y + arrow.points[arrow.points.length - 1][1],
+        );
+
+  return [startPoint, endPoint];
 };

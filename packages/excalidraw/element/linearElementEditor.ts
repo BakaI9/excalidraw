@@ -28,7 +28,6 @@ import { mutateElement } from "./mutateElement";
 import {
   bindOrUnbindLinearElement,
   getHoveredElementForBinding,
-  isBindingEnabled,
 } from "./binding";
 import { invariant, tupleToCoors } from "../utils";
 import {
@@ -429,7 +428,7 @@ export class LinearElementEditor {
             ]);
           }
 
-          const bindingElement = isBindingEnabled(appState)
+          const bindingElement = appState.isBindingEnabled
             ? getHoveredElementForBinding(
                 tupleToCoors(
                   LinearElementEditor.getPointAtIndexGlobalCoordinates(
@@ -821,7 +820,7 @@ export class LinearElementEditor {
       // binding (which needs to happen at the point the user finishes moving
       // the point).
       const { startBindingElement, endBindingElement } = linearElementEditor;
-      if (isBindingEnabled(appState) && isBindingElement(element)) {
+      if (appState.isBindingEnabled && isBindingElement(element)) {
         bindOrUnbindLinearElement(
           element,
           startBindingElement,

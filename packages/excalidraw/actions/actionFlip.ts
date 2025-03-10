@@ -12,10 +12,7 @@ import { resizeMultipleElements } from "../element/resizeElements";
 import type { AppClassProperties, AppState } from "../types";
 import { arrayToMap } from "../utils";
 import { CODES, KEYS } from "../keys";
-import {
-  bindOrUnbindLinearElements,
-  isBindingEnabled,
-} from "../element/binding";
+import { bindOrUnbindLinearElements } from "../element/binding";
 import { updateFrameMembershipOfSelectedElements } from "../frame";
 import { flipHorizontal, flipVertical } from "../components/icons";
 import { CaptureUpdateAction } from "../store";
@@ -158,7 +155,7 @@ const flipElements = (
     elementsMap,
     app.scene.getNonDeletedElements(),
     app.scene,
-    isBindingEnabled(appState),
+    appState.isBindingEnabled,
     [],
     appState.zoom,
   );

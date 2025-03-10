@@ -125,7 +125,6 @@ import {
   bindOrUnbindLinearElements,
   fixBindingsAfterDeletion,
   getHoveredElementForBinding,
-  isBindingEnabled,
   isLinearElementSimpleAndAlreadyBound,
   maybeBindLinearElement,
   shouldEnableBindingForPointerEvent,
@@ -2852,7 +2851,7 @@ class App extends React.Component<AppProps, AppState> {
     if (
       prevState.activeTool !== this.state.activeTool &&
       multiElement != null &&
-      isBindingEnabled(this.state) &&
+      this.state.isBindingEnabled &&
       isBindingElement(multiElement, false)
     ) {
       maybeBindLinearElement(
@@ -4594,7 +4593,7 @@ class App extends React.Component<AppProps, AppState> {
         this.scene.getNonDeletedElementsMap(),
         this.scene.getNonDeletedElements(),
         this.scene,
-        isBindingEnabled(this.state),
+        this.state.isBindingEnabled,
         this.state.selectedLinearElement?.selectedPointsIndices ?? [],
         this.state.zoom,
       );
@@ -8903,7 +8902,7 @@ class App extends React.Component<AppProps, AppState> {
           });
         } else if (pointerDownState.drag.hasOccurred && !multiElement) {
           if (
-            isBindingEnabled(this.state) &&
+            this.state.isBindingEnabled &&
             isBindingElement(newElement, false)
           ) {
             maybeBindLinearElement(
@@ -9488,7 +9487,7 @@ class App extends React.Component<AppProps, AppState> {
           this.scene.getNonDeletedElementsMap(),
           this.scene.getNonDeletedElements(),
           this.scene,
-          isBindingEnabled(this.state),
+          this.state.isBindingEnabled,
           this.state.selectedLinearElement?.selectedPointsIndices ?? [],
           this.state.zoom,
         );

@@ -2,6 +2,7 @@ import {
   clamp,
   pointDistance,
   pointFrom,
+  pointRotateRads,
   pointScaleFromOrigin,
   pointsEqual,
   pointTranslate,
@@ -21,7 +22,6 @@ import {
   bindPointToSnapToElementOutline,
   FIXED_BINDING_DISTANCE,
   getHeadingForElbowArrowSnap,
-  getGlobalFixedPointForBindableElement,
   snapToMid,
   getHoveredElementForBinding,
 } from "./binding";
@@ -50,6 +50,7 @@ import type {
   Arrowhead,
   ElementsMap,
   ExcalidrawBindableElement,
+  FixedPoint,
   FixedPointBinding,
   FixedSegment,
 } from "./types";
@@ -2261,3 +2262,39 @@ export const validateElbowPoints = <P extends GlobalPoint | LocalPoint>(
         Math.abs(p[1] - points[i][1]) < tolerance,
     )
     .every(Boolean);
+
+export const getGlobalFixedPointForBindableElement = (
+  fixedPointRatio: [number, number],
+  element: ExcalidrawBindableElement,
+): GlobalPoint => {
+  const [fixedX, fixedY] = normalizeFixedPoint(fixedPointRatio);
+
+  return pointRotateRads(
+    pointFrom(
+      element.x + element.width * fixedX,
+      element.y + element.height * fixedY,
+    ),
+    pointFrom<GlobalPoint>(
+      element.x + element.width / 2,
+      element.y + element.height / 2,
+    ),
+    element.angle,
+  );
+};
+
+export const normalizeFixedPoint = <T extends FixedPoint | null>(
+  fixedPoint: T,
+): T extends null ? null : FixedPoint => {
+  // Do not allow a precise 0.5 for fixed point ratio
+  // to avoid jumping arrow heading due to floating point imprecision
+  if (
+    fixedPoint &&
+    (Math.abs(fixedPoint[0] - 0.5) < 0.0001 ||
+      Math.abs(fixedPoint[1] - 0.5) < 0.0001)
+  ) {
+    return fixedPoint.map((ratio) =>
+      Math.abs(ratio - 0.5) < 0.0001 ? 0.5001 : ratio,
+    ) as T extends null ? null : FixedPoint;
+  }
+  return fixedPoint as any as T extends null ? null : FixedPoint;
+};

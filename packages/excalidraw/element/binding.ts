@@ -75,6 +75,7 @@ import {
 } from "@excalidraw/math";
 import { intersectElementWithLineSegment } from "./collision";
 import { distanceToBindableElement } from "./distance";
+import { normalizeFixedPoint } from "./elbowArrow";
 
 export type SuggestedBinding =
   | NonDeleted<ExcalidrawBindableElement>
@@ -90,10 +91,6 @@ export const shouldEnableBindingForPointerEvent = (
   event: React.PointerEvent<HTMLElement>,
 ) => {
   return !event[KEYS.CTRL_OR_CMD];
-};
-
-export const isBindingEnabled = (appState: AppState): boolean => {
-  return appState.isBindingEnabled;
 };
 
 export const FIXED_BINDING_DISTANCE = 5;
@@ -2054,89 +2051,3 @@ export class BindableElement {
     );
   };
 }
-
-export const getGlobalFixedPointForBindableElement = (
-  fixedPointRatio: [number, number],
-  element: ExcalidrawBindableElement,
-): GlobalPoint => {
-  const [fixedX, fixedY] = normalizeFixedPoint(fixedPointRatio);
-
-  return pointRotateRads(
-    pointFrom(
-      element.x + element.width * fixedX,
-      element.y + element.height * fixedY,
-    ),
-    pointFrom<GlobalPoint>(
-      element.x + element.width / 2,
-      element.y + element.height / 2,
-    ),
-    element.angle,
-  );
-};
-
-export const getGlobalFixedPoints = (
-  arrow: ExcalidrawElbowArrowElement,
-  elementsMap: ElementsMap,
-): [GlobalPoint, GlobalPoint] => {
-  const startElement =
-    arrow.startBinding &&
-    (elementsMap.get(arrow.startBinding.elementId) as
-      | ExcalidrawBindableElement
-      | undefined);
-  const endElement =
-    arrow.endBinding &&
-    (elementsMap.get(arrow.endBinding.elementId) as
-      | ExcalidrawBindableElement
-      | undefined);
-  const startPoint =
-    startElement && arrow.startBinding
-      ? getGlobalFixedPointForBindableElement(
-          arrow.startBinding.fixedPoint,
-          startElement as ExcalidrawBindableElement,
-        )
-      : pointFrom<GlobalPoint>(
-          arrow.x + arrow.points[0][0],
-          arrow.y + arrow.points[0][1],
-        );
-  const endPoint =
-    endElement && arrow.endBinding
-      ? getGlobalFixedPointForBindableElement(
-          arrow.endBinding.fixedPoint,
-          endElement as ExcalidrawBindableElement,
-        )
-      : pointFrom<GlobalPoint>(
-          arrow.x + arrow.points[arrow.points.length - 1][0],
-          arrow.y + arrow.points[arrow.points.length - 1][1],
-        );
-
-  return [startPoint, endPoint];
-};
-
-export const getArrowLocalFixedPoints = (
-  arrow: ExcalidrawElbowArrowElement,
-  elementsMap: ElementsMap,
-) => {
-  const [startPoint, endPoint] = getGlobalFixedPoints(arrow, elementsMap);
-
-  return [
-    LinearElementEditor.pointFromAbsoluteCoords(arrow, startPoint, elementsMap),
-    LinearElementEditor.pointFromAbsoluteCoords(arrow, endPoint, elementsMap),
-  ];
-};
-
-export const normalizeFixedPoint = <T extends FixedPoint | null>(
-  fixedPoint: T,
-): T extends null ? null : FixedPoint => {
-  // Do not allow a precise 0.5 for fixed point ratio
-  // to avoid jumping arrow heading due to floating point imprecision
-  if (
-    fixedPoint &&
-    (Math.abs(fixedPoint[0] - 0.5) < 0.0001 ||
-      Math.abs(fixedPoint[1] - 0.5) < 0.0001)
-  ) {
-    return fixedPoint.map((ratio) =>
-      Math.abs(ratio - 0.5) < 0.0001 ? 0.5001 : ratio,
-    ) as T extends null ? null : FixedPoint;
-  }
-  return fixedPoint as any as T extends null ? null : FixedPoint;
-};
