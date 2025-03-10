@@ -99,7 +99,6 @@ import { restore, restoreElements } from "../data/restore";
 import {
   dragNewElement,
   dragSelectedElements,
-  duplicateElement,
   getCommonBounds,
   getCursorForResizingElement,
   getDragOffsetXY,
@@ -125,7 +124,6 @@ import {
   bindOrUnbindLinearElement,
   bindOrUnbindLinearElements,
   fixBindingsAfterDeletion,
-  fixBindingsAfterDuplication,
   getHoveredElementForBinding,
   isBindingEnabled,
   isLinearElementSimpleAndAlreadyBound,
@@ -330,7 +328,6 @@ import throttle from "lodash.throttle";
 import type { FileSystemHandle } from "../data/filesystem";
 import { fileOpen } from "../data/filesystem";
 import {
-  bindTextToShapeAfterDuplication,
   getBoundTextElement,
   getContainerCenter,
   getContainerElement,
@@ -348,7 +345,6 @@ import { Fonts, getLineHeight } from "../fonts";
 import {
   getFrameChildren,
   isCursorInFrame,
-  bindElementsToFramesAfterDuplication,
   addElementsToFrame,
   replaceAllElementsInFrame,
   removeElementsFromFrame,
@@ -467,6 +463,7 @@ import {
   getApproxMinLineHeight,
   getMinTextElementWidth,
 } from "../element/textMeasurements";
+import { dragDuplicateElements } from "../element/duplication";
 
 const AppContext = React.createContext<AppClassProperties>(null!);
 const AppPropsContext = React.createContext<AppProps>(null!);
@@ -8413,154 +8410,15 @@ class App extends React.Component<AppProps, AppState> {
 
           // We duplicate the selected element if alt is pressed on pointer move
           if (event.altKey && !pointerDownState.hit.hasBeenDuplicated) {
-            // Move the currently selected elements to the top of the z index stack, and
-            // put the duplicates where the selected elements used to be.
-            // (the origin point where the dragging started)
-
-            pointerDownState.hit.hasBeenDuplicated = true;
-
-            const nextElements = [];
-            const elementsToAppend = [];
-            const groupIdMap = new Map();
-            const oldIdToDuplicatedId = new Map();
-            const hitElement = pointerDownState.hit.element;
-            const selectedElementIds = new Set(
-              this.scene
-                .getSelectedElements({
-                  selectedElementIds: this.state.selectedElementIds,
-                  includeBoundTextElement: true,
-                  includeElementsInFrames: true,
-                })
-                .map((element) => element.id),
+            const nextSceneElement = dragDuplicateElements(
+              pointerDownState,
+              this,
             );
-
-            const elements = this.scene.getElementsIncludingDeleted();
-
-            for (const element of elements) {
-              const isInSelection =
-                selectedElementIds.has(element.id) ||
-                // case: the state.selectedElementIds might not have been
-                // updated yet by the time this mousemove event is fired
-                (element.id === hitElement?.id &&
-                  pointerDownState.hit.wasAddedToSelection);
-              // NOTE (mtolmacs): This is a temporary fix for very large scenes
-              if (
-                Math.abs(element.x) > 1e7 ||
-                Math.abs(element.x) > 1e7 ||
-                Math.abs(element.width) > 1e7 ||
-                Math.abs(element.height) > 1e7
-              ) {
-                console.error(
-                  `Alt+dragging element in scene with invalid dimensions`,
-                  element.x,
-                  element.y,
-                  element.width,
-                  element.height,
-                  isInSelection,
-                );
-
-                return;
-              }
-
-              if (isInSelection) {
-                const duplicatedElement = duplicateElement(
-                  this.state.editingGroupId,
-                  groupIdMap,
-                  element,
-                );
-
-                // NOTE (mtolmacs): This is a temporary fix for very large scenes
-                if (
-                  Math.abs(duplicatedElement.x) > 1e7 ||
-                  Math.abs(duplicatedElement.x) > 1e7 ||
-                  Math.abs(duplicatedElement.width) > 1e7 ||
-                  Math.abs(duplicatedElement.height) > 1e7
-                ) {
-                  console.error(
-                    `Alt+dragging duplicated element with invalid dimensions`,
-                    duplicatedElement.x,
-                    duplicatedElement.y,
-                    duplicatedElement.width,
-                    duplicatedElement.height,
-                  );
-
-                  return;
-                }
-
-                const origElement = pointerDownState.originalElements.get(
-                  element.id,
-                )!;
-
-                // NOTE (mtolmacs): This is a temporary fix for very large scenes
-                if (
-                  Math.abs(origElement.x) > 1e7 ||
-                  Math.abs(origElement.x) > 1e7 ||
-                  Math.abs(origElement.width) > 1e7 ||
-                  Math.abs(origElement.height) > 1e7
-                ) {
-                  console.error(
-                    `Alt+dragging duplicated element with invalid dimensions`,
-                    origElement.x,
-                    origElement.y,
-                    origElement.width,
-                    origElement.height,
-                  );
-
-                  return;
-                }
-
-                mutateElement(duplicatedElement, {
-                  x: origElement.x,
-                  y: origElement.y,
-                });
-
-                // put duplicated element to pointerDownState.originalElements
-                // so that we can snap to the duplicated element without releasing
-                pointerDownState.originalElements.set(
-                  duplicatedElement.id,
-                  duplicatedElement,
-                );
-
-                nextElements.push(duplicatedElement);
-                elementsToAppend.push(element);
-                oldIdToDuplicatedId.set(element.id, duplicatedElement.id);
-              } else {
-                nextElements.push(element);
-              }
+            if (!nextSceneElement) {
+              return;
             }
 
-            let nextSceneElements: ExcalidrawElement[] = [
-              ...nextElements,
-              ...elementsToAppend,
-            ];
-
-            const mappedNewSceneElements = this.props.onDuplicate?.(
-              nextSceneElements,
-              elements,
-            );
-
-            nextSceneElements = mappedNewSceneElements || nextSceneElements;
-
-            syncMovedIndices(nextSceneElements, arrayToMap(elementsToAppend));
-
-            bindTextToShapeAfterDuplication(
-              nextElements,
-              elementsToAppend,
-              oldIdToDuplicatedId,
-            );
-            fixBindingsAfterDuplication(
-              nextSceneElements,
-              elementsToAppend,
-              oldIdToDuplicatedId,
-              "duplicatesServeAsOld",
-            );
-            bindElementsToFramesAfterDuplication(
-              nextSceneElements,
-              elementsToAppend,
-              oldIdToDuplicatedId,
-            );
-
-            this.scene.replaceAllElements(nextSceneElements);
+            this.scene.replaceAllElements(nextSceneElement);
             this.maybeCacheVisibleGaps(event, selectedElements, true);
             this.maybeCacheReferenceSnapPoints(event, selectedElements, true);
           }

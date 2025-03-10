@@ -27,7 +27,6 @@ import { isPointOnShape } from "@excalidraw/utils/collision";
 import {
   isArrowElement,
   isBindableElement,
-  isBindingElement,
   isBoundToContainer,
   isElbowArrow,
   isFixedPointBinding,
@@ -1396,109 +1395,6 @@ const getLinearElementEdgeCoors = (
       elementsMap,
     ),
   );
-};
-
-// We need to:
-// 1: Update elements not selected to point to duplicated elements
-// 2: Update duplicated elements to point to other duplicated elements
-export const fixBindingsAfterDuplication = (
-  sceneElements: readonly ExcalidrawElement[],
-  oldElements: readonly ExcalidrawElement[],
-  oldIdToDuplicatedId: Map<ExcalidrawElement["id"], ExcalidrawElement["id"]>,
-  // There are three copying mechanisms: Copy-paste, duplication and alt-drag.
-  // Only when alt-dragging the new "duplicates" act as the "old", while
-  // the "old" elements act as the "new copy" - essentially working reverse
-  // to the other two.
-  duplicatesServeAsOld?: "duplicatesServeAsOld" | undefined,
-): void => {
-  // First collect all the binding/bindable elements, so we only update
-  // each once, regardless of whether they were duplicated or not.
-  const allBoundElementIds: Set<ExcalidrawElement["id"]> = new Set();
-  const allBindableElementIds: Set<ExcalidrawElement["id"]> = new Set();
-  const shouldReverseRoles = duplicatesServeAsOld === "duplicatesServeAsOld";
-  const duplicateIdToOldId = new Map(
-    [...oldIdToDuplicatedId].map(([key, value]) => [value, key]),
-  );
-  oldElements.forEach((oldElement) => {
-    const { boundElements } = oldElement;
-    if (boundElements != null && boundElements.length > 0) {
-      boundElements.forEach((boundElement) => {
-        if (shouldReverseRoles && !oldIdToDuplicatedId.has(boundElement.id)) {
-          allBoundElementIds.add(boundElement.id);
-        }
-      });
-      allBindableElementIds.add(oldIdToDuplicatedId.get(oldElement.id)!);
-    }
-    if (isBindingElement(oldElement)) {
-      if (oldElement.startBinding != null) {
-        const { elementId } = oldElement.startBinding;
-        if (shouldReverseRoles && !oldIdToDuplicatedId.has(elementId)) {
-          allBindableElementIds.add(elementId);
-        }
-      }
-      if (oldElement.endBinding != null) {
-        const { elementId } = oldElement.endBinding;
-        if (shouldReverseRoles && !oldIdToDuplicatedId.has(elementId)) {
-          allBindableElementIds.add(elementId);
-        }
-      }
-      if (oldElement.startBinding != null || oldElement.endBinding != null) {
-        allBoundElementIds.add(oldIdToDuplicatedId.get(oldElement.id)!);
-      }
-    }
-  });
-
-  // Update the linear elements
-  (
-    sceneElements.filter(({ id }) =>
-      allBoundElementIds.has(id),
-    ) as ExcalidrawLinearElement[]
-  ).forEach((element) => {
-    const { startBinding, endBinding } = element;
-    mutateElement(element, {
-      startBinding: newBindingAfterDuplication(
-        startBinding,
-        oldIdToDuplicatedId,
-      ),
-      endBinding: newBindingAfterDuplication(endBinding, oldIdToDuplicatedId),
-    });
-  });
-
-  // Update the bindable shapes
-  sceneElements
-    .filter(({ id }) => allBindableElementIds.has(id))
-    .forEach((bindableElement) => {
-      const oldElementId = duplicateIdToOldId.get(bindableElement.id);
-      const boundElements = sceneElements.find(
-        ({ id }) => id === oldElementId,
-      )?.boundElements;
-
-      if (boundElements && boundElements.length > 0) {
-        mutateElement(bindableElement, {
-          boundElements: boundElements.map((boundElement) =>
-            oldIdToDuplicatedId.has(boundElement.id)
-              ? {
-                  id: oldIdToDuplicatedId.get(boundElement.id)!,
-                  type: boundElement.type,
-                }
-              : boundElement,
-          ),
-        });
-      }
-    });
-};
-
-const newBindingAfterDuplication = (
-  binding: PointBinding | null,
-  oldIdToDuplicatedId: Map<ExcalidrawElement["id"], ExcalidrawElement["id"]>,
-): PointBinding | null => {
-  if (binding == null) {
-    return null;
-  }
-  return {
-    ...binding,
-    elementId: oldIdToDuplicatedId.get(binding.elementId) ?? binding.elementId,
-  };
 };
 
 export const fixBindingsAfterDeletion = (
