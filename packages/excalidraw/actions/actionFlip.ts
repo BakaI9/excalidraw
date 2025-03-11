@@ -25,7 +25,7 @@ import {
   isLinearElement,
 } from "../element/typeChecks";
 import { mutateElement, newElementWith } from "../element/mutateElement";
-import { deepCopyElement } from "../element/newElement";
+import { deepCopyElement } from "../element/duplicate";
 import { getCommonBoundingBox } from "../element/bounds";
 
 export const actionFlipHorizontal = register({

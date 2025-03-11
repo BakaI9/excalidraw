@@ -17,7 +17,7 @@ import { arrayToMap } from "../utils";
 import Stack from "./Stack";
 import { MIME_TYPES } from "../constants";
 import Spinner from "./Spinner";
-import { duplicateElements } from "../element/newElement";
+import { duplicateElements } from "../element/duplicate";
 import { LibraryMenuControlButtons } from "./LibraryMenuControlButtons";
 import { LibraryDropdownMenu } from "./LibraryMenuHeaderContent";
 import {

@@ -1,5 +1,5 @@
 import { register } from "./register";
-import { deepCopyElement } from "../element/newElement";
+import { deepCopyElement } from "../element/duplicate";
 import { randomId } from "../random";
 import { t } from "../i18n";
 import { LIBRARY_DISABLED_TYPES } from "../constants";

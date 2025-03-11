@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { EVENT } from "../../constants";
 import { KEYS } from "../../keys";
 import type { ElementsMap, ExcalidrawElement } from "../../element/types";
-import { deepCopyElement } from "../../element/newElement";
+import { deepCopyElement } from "../../element/duplicate";
 import clsx from "clsx";
 import { useApp } from "../App";
 import { InlineIcon } from "../InlineIcon";
