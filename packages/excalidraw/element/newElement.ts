@@ -654,7 +654,6 @@ export const duplicateElement = <TElement extends ExcalidrawElement>(
   }
 
   copy.id = regenerateId();
-  copy.boundElements = null;
   copy.updated = getUpdatedTimestamp();
   copy.seed = randomInteger();
   copy.groupIds = getNewGroupIdsForDuplication(
