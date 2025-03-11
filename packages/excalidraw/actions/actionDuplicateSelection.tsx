@@ -50,6 +50,8 @@ import {
 import { CaptureUpdateAction } from "../store";
 import type { Mutable } from "../utility-types";
 import { mutateElement, type ElementUpdate } from "../element/mutateElement";
+import { duplicateElements } from "../element/duplicate";
+import { syncMovedIndices } from "../fractionalIndex";
 
 export const actionDuplicateSelection = register({
   name: "duplicateSelection",
@@ -76,20 +78,51 @@ export const actionDuplicateSelection = register({
       }
     }
 
-    const nextState = duplicateElements(elements, appState);
+    const origElements: ExcalidrawElement[] = elements.slice();
+    const clonedElements = duplicateElements(elements, {
+      randomizeSeed: true,
+      overrides: (element) => ({
+        x: element.x + DEFAULT_GRID_SIZE / 2,
+        y: element.y + DEFAULT_GRID_SIZE / 2,
+      }),
+    });
 
-    if (app.props.onDuplicate && nextState.elements) {
-      const mappedElements = app.props.onDuplicate(
-        nextState.elements,
-        elements,
-      );
+    let nextElements = origElements.concat(clonedElements);
+
+    if (app.props.onDuplicate && nextElements) {
+      const mappedElements = app.props.onDuplicate(nextElements, elements);
       if (mappedElements) {
-        nextState.elements = mappedElements;
+        nextElements = mappedElements;
       }
     }
 
+    //nextElements = syncMovedIndices(nextElements, arrayToMap(clonedElements));
+
+    const nextElementsToSelect =
+      excludeElementsInFramesFromSelection(clonedElements);
+
     return {
-      ...nextState,
+      elements: nextElements,
+      appState: {
+        ...appState,
+        ...selectGroupsForSelectedElements(
+          {
+            editingGroupId: appState.editingGroupId,
+            selectedElementIds: nextElementsToSelect.reduce(
+              (acc: Record<ExcalidrawElement["id"], true>, element) => {
+                if (!isBoundToContainer(element)) {
+                  acc[element.id] = true;
+                }
+                return acc;
+              },
+              {},
+            ),
+          },
+          getNonDeletedElements(nextElements),
+          appState,
+          null,
+        ),
+      },
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
@@ -108,7 +141,7 @@ export const actionDuplicateSelection = register({
   ),
 });
 
-const duplicateElements = (
+const _duplicateElements = (
   elements: readonly ExcalidrawElement[],
   appState: AppState,
 ): Partial<Exclude<ActionResult, false>> => {
@@ -332,96 +365,96 @@ const duplicateElements = (
   //   oldIdToDuplicatedId,
   // );
 
-  newElements
-    .map((element) => {
-      oldElements.includes(element) && console.error("oldElements", element);
+  // newElements
+  //   .map((element) => {
+  //     oldElements.includes(element) && console.error("oldElements", element);
 
-      if (isArrowElement(element)) {
-        const updates: Mutable<ElementUpdate<ExcalidrawArrowElement>> = {};
+  //     if (isArrowElement(element)) {
+  //       const updates: Mutable<ElementUpdate<ExcalidrawArrowElement>> = {};
 
-        if (element.startBinding) {
-          const startCloneElementId = oldIdToDuplicatedId.get(
-            element.startBinding.elementId,
-          );
+  //       if (element.startBinding) {
+  //         const startCloneElementId = oldIdToDuplicatedId.get(
+  //           element.startBinding.elementId,
+  //         );
 
-          if (startCloneElementId) {
-            // The connected element was duplicated, so we need to update the binding
-            updates.startBinding = {
-              ...element.startBinding,
-              elementId: startCloneElementId,
-            };
-          } else {
-            // The connected element was not duplicated, so we need to remove the binding
-            updates.startBinding = null;
-          }
-        }
+  //         if (startCloneElementId) {
+  //           // The connected element was duplicated, so we need to update the binding
+  //           updates.startBinding = {
+  //             ...element.startBinding,
+  //             elementId: startCloneElementId,
+  //           };
+  //         } else {
+  //           // The connected element was not duplicated, so we need to remove the binding
+  //           updates.startBinding = null;
+  //         }
+  //       }
 
-        if (element.endBinding) {
-          const endCloneElementId = oldIdToDuplicatedId.get(
-            element.endBinding.elementId,
-          );
+  //       if (element.endBinding) {
+  //         const endCloneElementId = oldIdToDuplicatedId.get(
+  //           element.endBinding.elementId,
+  //         );
 
-          if (endCloneElementId) {
-            // The connected element was duplicated, so we need to update the binding
-            updates.endBinding = {
-              ...element.endBinding,
-              elementId: endCloneElementId,
-            };
-          } else {
-            // The connected element was not duplicated, so we need to remove the binding
-            updates.endBinding = null;
-          }
-        }
+  //         if (endCloneElementId) {
+  //           // The connected element was duplicated, so we need to update the binding
+  //           updates.endBinding = {
+  //             ...element.endBinding,
+  //             elementId: endCloneElementId,
+  //           };
+  //         } else {
+  //           // The connected element was not duplicated, so we need to remove the binding
+  //           updates.endBinding = null;
+  //         }
+  //       }
 
-        if (Object.keys(updates).length > 0) {
-          // Only update the element if there are updates to apply
-          return {
-            element,
-            updates,
-          };
-        }
-      } else if (isBindableElement(element)) {
-        if (element.boundElements?.length) {
-          const clonedBoundElements = element.boundElements
-            ?.map((definition) => {
-              const clonedBoundElementId = oldIdToDuplicatedId.get(
-                definition.id,
-              );
-              if (clonedBoundElementId) {
-                // The connected element was duplicated, so we need to update the binding
-                return {
-                  ...definition,
-                  id: clonedBoundElementId,
-                };
-              }
+  //       if (Object.keys(updates).length > 0) {
+  //         // Only update the element if there are updates to apply
+  //         return {
+  //           element,
+  //           updates,
+  //         };
+  //       }
+  //     } else if (isBindableElement(element)) {
+  //       if (element.boundElements?.length) {
+  //         const clonedBoundElements = element.boundElements
+  //           ?.map((definition) => {
+  //             const clonedBoundElementId = oldIdToDuplicatedId.get(
+  //               definition.id,
+  //             );
+  //             if (clonedBoundElementId) {
+  //               // The connected element was duplicated, so we need to update the binding
+  //               return {
+  //                 ...definition,
+  //                 id: clonedBoundElementId,
+  //               };
+  //             }
 
-              // The connected element was not duplicated, so we need to remove the binding
-              return null;
-            })
-            .filter(
-              (definition): definition is BoundElement => definition !== null,
-            );
+  //             // The connected element was not duplicated, so we need to remove the binding
+  //             return null;
+  //           })
+  //           .filter(
+  //             (definition): definition is BoundElement => definition !== null,
+  //           );
 
-          if (clonedBoundElements?.length) {
-            return {
-              element,
-              updates: {
-                boundElements: clonedBoundElements,
-              },
-            };
-          }
-        }
-      }
+  //         if (clonedBoundElements?.length) {
+  //           return {
+  //             element,
+  //             updates: {
+  //               boundElements: clonedBoundElements,
+  //             },
+  //           };
+  //         }
+  //       }
+  //     }
 
-      return null;
-    })
-    .forEach((change) => {
-      if (!change) {
-        return;
-      }
+  //     return null;
+  //   })
+  //   .forEach((change) => {
+  //     if (!change) {
+  //       return;
+  //     }
 
-      mutateElement(change.element, change.updates);
-    });
+  //     mutateElement(change.element, change.updates);
+  //   });
 
   bindElementsToFramesAfterDuplication(
     elementsWithClones,
